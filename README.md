@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# hhh
-搞笑网站
-=======
 # hlink_web
 
 ## NPM SCRIPT 
@@ -97,4 +93,3 @@
     |   └svg-change-color.js
 
 ```
->>>>>>> d566a23... vue design vue案例

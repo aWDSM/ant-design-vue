@@ -1,7 +1,17 @@
+@import url('./antd.scss');
+
 :root {
   --layout-menu-width: 200px;
   --layout-header-height: 56px;
   --layout-background-color: #F2F3F5;
+
+  --font-size-s: 10px;
+  --font-size-m: 12px;
+  --font-size-l: 14px;
+  --font-size-xl: 16px;
+  --font-size-xxl: 18px;
+  --font-size-xxxl: 20px;
+  --font-size-xxxxl: 24px;
 
   --font-family-medium: PingFangSC-Medium, PingFang SC;
   --font-family-regular: PingFangSC-Regular, PingFang SC;
@@ -19,10 +29,3 @@ li {
   list-style: none;
 }
 
-.ant-modal-header {
-  border-bottom: 0;
-}
-
-.ant-modal-footer {
-  border-top: 0;
-}

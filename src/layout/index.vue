@@ -10,7 +10,7 @@
         <li
           v-for="(route, index) in routes"
           :key="`${route.name}_${index}`"
-          :class="{ active: route.name === $route.name }"
+          :class="{ active: route.name === ($route.meta.active || $route.name) }"
           @click="$router.push(`/${route.path}`)"
         >
           <svg-icon v-if="route.meta.icon" class="menu-icon" :name="route.meta.icon" />
@@ -27,13 +27,16 @@
         <span class="email">humulan@xxxx.com</span>
         <svg-icon name="logout" class="logout-icon" @click="visible = true" />
       </header>
-      <router-view class="app-main"></router-view>
+      <router-view
+        :class="{ 'app-main': true, 'app-main__default': !$route.meta.custom }"
+      ></router-view>
     </div>
 
     <!-- Logout dialog -->
     <a-modal
       v-model="visible"
       centered
+      destroy-on-close
       title="提示"
       ok-text="确定"
       cancel-text="取消"
@@ -49,17 +52,20 @@
 export default {
   name: "Layout",
   data() {
-    return { visible: false };
+    return { visible: false, visibles: false };
   },
   computed: {
     routes() {
       return this.$router.options.routes
         .find(({ name }) => name === "Layout")
-        ?.children?.filter(({ meta }) => meta);
+        ?.children?.filter(({ meta }) => meta && meta.title);
     },
   },
   methods: {
-    onLogout() {},
+    onLogout() {
+      this.visible = false;
+      this.$store.dispatch("user/logout");
+    },
   },
 };
 </script>
@@ -73,7 +79,6 @@ export default {
 
   &-menu {
     height: 100%;
-    overflow: auto;
     width: var(--layout-menu-width);
 
     header {
@@ -89,9 +94,9 @@ export default {
       }
 
       h3 {
-        font-size: 14px;
         font-weight: bold;
         color: #000000;
+        font-size: var(--font-size-l);
       }
     }
 
@@ -116,7 +121,7 @@ export default {
         }
 
         span {
-          font-size: 14px;
+          font-size: var(--font-size-l);
           font-weight: 500;
           font-family: var(--font-family-medium);
         }
@@ -142,10 +147,10 @@ export default {
 
       .name,
       .email {
-        font-size: 12px;
         margin-left: 6px;
         line-height: 17px;
         color: #000000;
+        font-size: var(--font-size-m);
       }
 
       .logout-icon {
@@ -157,11 +162,16 @@ export default {
     }
 
     .app-main {
-      overflow: auto;
-      border-radius: 4px;
-      background: #fff;
       width: calc(100% - 16px);
       height: calc(100% - 20px - var(--layout-header-height));
+
+      &__default,
+      ::v-deep(.default-wrapper) {
+        padding: 16px;
+        overflow: auto;
+        border-radius: 4px;
+        background: #fff;
+      }
     }
   }
 }

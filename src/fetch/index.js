@@ -1,17 +1,18 @@
-import Axios from "axios";
+import Axios, { AxiosError } from "axios";
 import storage from "@/utils/storage";
 import { message } from "ant-design-vue";
+import { decrypt, encrypt } from "@/utils/encrypt";
+import { ACCESS_IV_KEY, ACCESS_SECRET_KEY, ACCESS_TOKEN } from "@/common/constant";
+import { isString } from "@/utils/verify";
 import { ControlLoading, isHideLoadingAry } from "../common/loading";
+import { handleErrorCode } from "./option";
 
 // 增加/删除 请求个数
 const [addRequestNum, minusRequestNum] = ControlLoading();
 
 // 判断是否隐藏 Loading
 const isHideLoading = (config) =>
-  config &&
-  ((config.responseType && config.responseType !== "json") ||
-    isHideLoadingAry.includes(config.url) ||
-    config.headers.HideLoading);
+  config && (isHideLoadingAry.includes(config.url) || config.HideLoading);
 
 // 创建 Axios 实例
 const instance = Axios.create({
@@ -23,13 +24,20 @@ const instance = Axios.create({
 // 添加请求拦截
 instance.interceptors.request.use(
   (config) => {
-    !isHideLoading(config) && addRequestNum();
-    const token = storage.get("token");
-    config.headers.Authorization = token && token !== "" ? `Bearer ${token}` : "";
+    const source = Axios.CancelToken.source();
+    config.cancelToken = source.token;
+    addRequestNum(config.url, source.cancel, isHideLoading(config));
+    const token = storage.get(ACCESS_TOKEN);
+    token && (config.headers.Authorization = `Bearer ${token}`);
     console.log(
       `[Fetch Request] 🤞...: ${config.url} -- ${config.method} \n%s`,
       `params: ${JSON.stringify(config.data)}`
     );
+    !config.NoEncryption &&
+      config.data &&
+      (config.data = {
+        param: encrypt(storage.get(ACCESS_SECRET_KEY), storage.get(ACCESS_IV_KEY), config.data),
+      });
     return config;
   },
   (error) => Promise.reject(error)
@@ -38,17 +46,29 @@ instance.interceptors.request.use(
 // 添加响应拦截
 instance.interceptors.response.use(
   (response) => {
-    !isHideLoading(response.config) && minusRequestNum();
-    const { data } = response;
-    const { url, method, responseType } = response.config;
-    console.log(`[Fetch Response] 🤫...: ${url} -- ${method} \nbody: `, data);
-    if (!data.success && (!responseType || responseType === "json"))
-      message.error(`Error：${data.msg}`);
+    let { data: result } = response;
+    const { url, method } = response.config;
+    minusRequestNum(url, isHideLoading(response.config));
+    try {
+      isString(result) &&
+        (result = JSON.parse(
+          decrypt(storage.get(ACCESS_SECRET_KEY), storage.get(ACCESS_IV_KEY), result)
+        ));
+    } catch (error) {
+      console.log("[Fetch decrypt error]: ", error.message);
+    }
+    console.log(`[Fetch Response] 🤫...: ${url} -- ${method} \nbody: `, result);
+    const { data, msg, code, success } = result;
+    if (!success) {
+      handleErrorCode(code, msg);
+      return Promise.reject(result);
+    }
     return data;
   },
   (error) => {
     !isHideLoading(error.config) && minusRequestNum();
-    message.error(`Error：${error.response.data?.error || "Network error"}`);
+    error.code !== AxiosError.ERR_CANCELED &&
+      message.error(`Error：${error?.response?.data?.error || "Network error"}`);
     return Promise.reject(error);
   }
 );

@@ -8,7 +8,7 @@ import modules from "./modules";
 Vue.use(Vuex);
 
 const vuexLocal = new VuexPersistence({
-  storage: window.localStorage,
+  storage: window.sessionStorage,
   key: `${KEY_PREFIX}VUEX_LOCAL`,
 });
 

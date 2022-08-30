@@ -25,6 +25,12 @@ const routes = [
         meta: { title: "租户管理", icon: "ic-tenant" },
       },
       {
+        path: "tenant/:id",
+        name: "TenantDetail",
+        component: lazyComponent("Tenant/detail"),
+        meta: { active: "Tenant", custom: true },
+      },
+      {
         path: "log",
         name: "Log",
         component: lazyComponent("Log/index"),

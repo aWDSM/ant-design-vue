@@ -22,7 +22,13 @@ module.exports = defineConfig({
   publicPath: isDev ? "/" : "./",
   productionSourceMap: false,
   devServer: {
-    proxy: {},
+    proxy: {
+      "/console": {
+        target: "http://121.199.16.88:8083/api/",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
     setupMiddlewares(middlewares, devServer) {
       if (!devServer) throw new Error("webpack-dev-server is not defined");
       mockServe(devServer.app);
