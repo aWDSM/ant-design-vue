@@ -1,0 +1,28 @@
+:root {
+  --layout-menu-width: 200px;
+  --layout-header-height: 56px;
+  --layout-background-color: #F2F3F5;
+
+  --font-family-medium: PingFangSC-Medium, PingFang SC;
+  --font-family-regular: PingFangSC-Regular, PingFang SC;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+li {
+  list-style: none;
+}
+
+.ant-modal-header {
+  border-bottom: 0;
+}
+
+.ant-modal-footer {
+  border-top: 0;
+}
